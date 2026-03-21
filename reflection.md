@@ -7,6 +7,39 @@
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+A user should be able to do the following actions:
+- Add/manage pet tasks — enter a task (e.g., "Morning walk"), its duration, and priority level
+- Generate a daily schedule — trigger the scheduler to produce an ordered plan based on available time and task priorities
+- View the plan with reasoning — see which tasks were chosen, when they happen, and why
+
+It will have the following classes: 
+1) Owner
+Attributes: name, available_minutes_per_day
+Responsibility: Represents the human user and their time constraints
+
+2) Pet
+Attributes: name, species
+Responsibility: Represents the pet being cared for; could later hold species-specific needs
+
+3) Task
+Attributes: title, duration_minutes, priority (low/medium/high)
+Responsibility: Encapsulates a single care activity and its scheduling weight
+
+4) Scheduler
+Attributes: owner, pet, tasks: list[Task]
+Methods: generate_plan() → Plan
+Responsibility: Core logic — selects and orders tasks that fit within the owner's available time, prioritizing high-priority tasks first
+
+5) Plan
+Attributes: scheduled_tasks: list[Task], skipped_tasks: list[Task]
+Methods: explain() → str
+Responsibility: Holds the output of a scheduling run and can produce a human-readable explanation of decisions made
+
+Relationships between the above classes:
+Owner has one Pet
+Scheduler takes an Owner, a Pet, and a list of Tasks
+Scheduler.generate_plan() returns a Plan
+
 **b. Design changes**
 
 - Did your design change during implementation?
