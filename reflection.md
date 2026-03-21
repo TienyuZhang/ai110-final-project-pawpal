@@ -64,10 +64,42 @@ Task.priority is typed as str but valid values are "low", "medium", "high". Noth
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
 
+Constraints my scheduler consider: 
+1. Time budget (available_minutes_per_day)
+The hard constraint. The scheduler tracks time_used and only adds a task if time_used + task.duration_minutes <= budget. Tasks that don't fit are moved to skipped.
+2. Priority (Priority enum)
+The ordering constraint. Before fitting tasks into the budget, candidates are sorted by priority.value descending — so HIGH tasks are always considered before MEDIUM or LOW ones.
+3. Completion status (completed)
+The filter constraint. Only pending_tasks() (where completed == False) are ever passed to the scheduler. Already-done tasks are invisible to it.
+
+How it's decided:
+1. Time is the hard wall — it's the only constraint that produces a firm yes/no. A task either fits or it doesn't. Everything else is about ordering within that wall.
+2. Priority is the tiebreaker — when you can't fit everything, priority determines what gets sacrificed. A HIGH task (medication, feeding) failing to run has real consequences; a LOW task (enrichment toy) being skipped is acceptable. The Enum integer values make this comparison unambiguous and sortable.
+3. Completion status is a pre-filter — there's no point running scheduling logic on tasks already done. Filtering first keeps the scheduler focused on what actually needs deciding.
+4. Frequency (daily, weekly) and pet-specific preferences (e.g., species-based needs) are captured in the data model but not yet enforced by the scheduler — they're the natural next constraint to add once the core logic is stable.
+
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
+
+The tradeoff: Greedy scheduling over optimal packing
+The scheduler uses a greedy algorithm — it sorts tasks by priority and fits them in one by one until the time budget runs out. It never looks ahead or tries rearranging tasks to maximize total time used.
+
+For example, if the budget is 60 minutes and the candidates are:
+
+Task	   Priority	    Duration
+Medication	HIGH	    50 min
+Walk	    MEDIUM	    30 min
+Feeding	    MEDIUM	    25 min
+
+The greedy scheduler picks Medication (50 min), then tries Walk (would exceed 60) → skipped, then tries Feeding (would exceed 60) → skipped. 10 minutes go unused, even though Walk + Feeding = 55 min would have fit.
+A more optimal algorithm (like 0/1 knapsack) could find that better combination — but it would be significantly more complex to implement and explain.
+
+Why:
+High-priority tasks in pet care are usually non-negotiable. Medication, feeding, and walks aren't interchangeable — a HIGH priority task skipped in favor of two MEDIUM ones could have real welfare consequences. The greedy approach guarantees the most critical tasks always run first, which aligns with the actual stakes of the domain.
+
+The owner can adjust. If a high-priority task is consuming too much time and crowding out others, the owner can lower its duration estimate or reprioritize. The scheduler's behavior is transparent and predictable, which makes it easy to reason about and correct.
 
 ---
 
