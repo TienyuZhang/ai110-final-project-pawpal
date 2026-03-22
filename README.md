@@ -80,7 +80,7 @@ python main.py
 ```
 
 ### 📸 Demo
-<a href="/images/app_screenshot_1.png" target="_blank"><img src='images/app_screenshot_1.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>.
+<a href="/images/app_screenshot _1.png" target="_blank"><img src='images/app_screenshot _1.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>.
 
 <a href="/images/app_screenshot_2.png" target="_blank"><img src='images/app_screenshot_2.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>.
 
