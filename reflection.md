@@ -83,23 +83,14 @@ How it's decided:
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
 
-The tradeoff: Greedy scheduling over optimal packing
-The scheduler uses a greedy algorithm — it sorts tasks by priority and fits them in one by one until the time budget runs out. It never looks ahead or tries rearranging tasks to maximize total time used.
+The tradeoff: Conflict detection is separate from scheduling
+The scheduler detects conflicts and generates a plan as two independent steps — detect_conflicts() and generate_plan() — rather than blocking or auto-resolving conflicts before scheduling. If two tasks overlap, a warning is printed, but both tasks still enter the candidate pool and can both end up in the plan.
+For example, you can see this in the output: "Morning walk" and "Give supplements" are flagged as conflicting, yet both appear in the final schedule.
 
-For example, if the budget is 60 minutes and the candidates are:
-
-Task	   Priority	    Duration
-Medication	HIGH	    50 min
-Walk	    MEDIUM	    30 min
-Feeding	    MEDIUM	    25 min
-
-The greedy scheduler picks Medication (50 min), then tries Walk (would exceed 60) → skipped, then tries Feeding (would exceed 60) → skipped. 10 minutes go unused, even though Walk + Feeding = 55 min would have fit.
-A more optimal algorithm (like 0/1 knapsack) could find that better combination — but it would be significantly more complex to implement and explain.
-
-Why:
-High-priority tasks in pet care are usually non-negotiable. Medication, feeding, and walks aren't interchangeable — a HIGH priority task skipped in favor of two MEDIUM ones could have real welfare consequences. The greedy approach guarantees the most critical tasks always run first, which aligns with the actual stakes of the domain.
-
-The owner can adjust. If a high-priority task is consuming too much time and crowding out others, the owner can lower its duration estimate or reprioritize. The scheduler's behavior is transparent and predictable, which makes it easy to reason about and correct.
+Why this is reasonable here:
+The owner, not the algorithm, should resolve conflicts. Pet care tasks often have legitimate overlap by design — a "give supplements" task during a walk is intentional multitasking, not a mistake. Auto-dropping one task because its start time collides would silently remove something that might be medically important.
+Warnings preserve transparency. By surfacing conflicts as messages rather than hard stops, the scheduler gives the owner the information they need to decide: reschedule one task, merge them, or accept the overlap. The scheduler stays predictable and auditable — its behavior doesn't silently change based on conflict state.
+The cost of a false block is higher than a false pass. Missing a medication because the scheduler quietly removed it is worse than seeing a warning and ignoring it. A lightweight warning strategy errs on the side of doing too much rather than too little.
 
 ---
 
