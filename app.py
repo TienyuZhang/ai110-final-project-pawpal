@@ -22,6 +22,25 @@ PRIORITY_EMOJI = {
     "LOW":    "🟢 Low",
 }
 
+
+def task_icon(title: str) -> str:
+    """Return a contextual emoji based on keywords in the task title."""
+    t = title.lower()
+    if any(w in t for w in ("walk", "run", "exercise", "jog")):
+        return "🐕"
+    if any(w in t for w in ("feed", "food", "meal", "treat", "water")):
+        return "🍽️"
+    if any(w in t for w in ("medication", "medicine", "pill", "supplement", "drop")):
+        return "💊"
+    if any(w in t for w in ("groom", "brush", "bath", "wash", "coat", "nail")):
+        return "✂️"
+    if any(w in t for w in ("vet", "doctor", "check", "appointment")):
+        return "🏥"
+    if any(w in t for w in ("play", "train", "session", "enrichment", "fetch")):
+        return "🎾"
+    return "🐾"
+
+
 # ── Section 1: Owner & Pet Setup ──────────────────────────────────────────────
 st.subheader("1. Owner & Pet Setup")
 
@@ -64,33 +83,44 @@ if st.button("Add task"):
         )
         st.session_state.owner.pets[0].add_task(task)
         st.session_state.owner.save_to_json()
-        st.success(f"Added: **{task_title}** at {task_time} ({duration} min, {priority_str} priority)")
+        st.success(f"Added: {task_icon(task_title)} **{task_title}** at {task_time} ({duration} min, {PRIORITY_EMOJI[priority_str.upper()]})")
 
 # Display tasks sorted by priority then time
 owner = st.session_state.owner
 if owner and owner.all_tasks():
     scheduler = Scheduler(owner=owner)
 
+    # At-a-glance metrics
+    all_tasks = owner.all_tasks()
+    pending = owner.all_pending_tasks()
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Total tasks", len(all_tasks))
+    m2.metric("Pending", len(pending))
+    m3.metric("Completed", len(all_tasks) - len(pending))
+
     st.markdown("**Current tasks** (sorted by priority, then start time):")
-    st.table([
-        {
-            "Pet":          pet.name,
-            "Start":        t.time,
-            "Task":         t.title,
-            "Duration":     f"{t.duration_minutes} min",
-            "Priority":     PRIORITY_EMOJI[t.priority.name],
-            "Done":         "✓" if t.completed else "",
-        }
-        for pet in owner.pets
-        for t in scheduler.sort_by_priority_then_time(pet.tasks)
-    ])
+    st.dataframe(
+        [
+            {
+                "Pet":       pet.name,
+                "Start":     t.time,
+                "Task":      f"{task_icon(t.title)} {t.title}",
+                "Duration":  f"{t.duration_minutes} min",
+                "Priority":  PRIORITY_EMOJI[t.priority.name],
+                "Done":      "✓" if t.completed else "",
+            }
+            for pet in owner.pets
+            for t in scheduler.sort_by_priority_then_time(pet.tasks)
+        ],
+        use_container_width=True,
+        hide_index=True,
+    )
 
     # Surface conflict warnings immediately after the task table
     conflicts = scheduler.detect_conflicts()
     if conflicts:
         st.markdown("**Scheduling conflicts detected:**")
         for warning in conflicts:
-            # Strip the leading "WARNING [PetName]: " prefix for a cleaner message
             message = warning.replace("WARNING ", "")
             st.warning(f"⚠️ {message}")
     else:
@@ -121,7 +151,17 @@ if st.button("Generate schedule"):
 
         plan = scheduler.generate_plan()
 
-        st.success(f"Schedule ready — {sum(t.duration_minutes for t in plan.scheduled_tasks)} / {owner.available_minutes_per_day} min used")
+        # Summary metrics
+        time_used = sum(t.duration_minutes for t in plan.scheduled_tasks)
+        budget = owner.available_minutes_per_day
+        s1, s2, s3 = st.columns(3)
+        s1.metric("Scheduled", len(plan.scheduled_tasks), help="Tasks that fit in your time budget")
+        s2.metric("Skipped", len(plan.skipped_tasks), help="Tasks that didn't fit")
+        s3.metric("Time used", f"{time_used} / {budget} min")
+
+        # Time budget progress bar
+        progress_pct = min(time_used / budget, 1.0)
+        st.progress(progress_pct, text=f"Time budget: {time_used} / {budget} min used")
 
         if plan.scheduled_tasks:
             st.markdown("**Scheduled tasks:**")
@@ -129,16 +169,16 @@ if st.button("Generate schedule"):
             rows = []
             for t in plan.scheduled_tasks:
                 rows.append({
-                    "Task":         t.title,
-                    "Priority":     PRIORITY_EMOJI[t.priority.name],
-                    "Start (min)":  time_elapsed,
-                    "End (min)":    time_elapsed + t.duration_minutes,
-                    "Duration":     f"{t.duration_minutes} min",
+                    "Task":        f"{task_icon(t.title)} {t.title}",
+                    "Priority":    PRIORITY_EMOJI[t.priority.name],
+                    "Start (min)": time_elapsed,
+                    "End (min)":   time_elapsed + t.duration_minutes,
+                    "Duration":    f"{t.duration_minutes} min",
                 })
                 time_elapsed += t.duration_minutes
-            st.table(rows)
+            st.dataframe(rows, use_container_width=True, hide_index=True)
 
         if plan.skipped_tasks:
             st.markdown("**Skipped (not enough time):**")
             for t in plan.skipped_tasks:
-                st.warning(f"⏭️ **{t.title}** {PRIORITY_EMOJI[t.priority.name]} needs {t.duration_minutes} min")
+                st.warning(f"⏭️ {task_icon(t.title)} **{t.title}** {PRIORITY_EMOJI[t.priority.name]} — needs {t.duration_minutes} min")
