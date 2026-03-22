@@ -55,6 +55,11 @@ pawpal-starter/
 └── tests/
     └── test_pawpal.py   # Pytest tests for core scheduling behaviors
 ```
+---
+
+## UML diagram
+
+<a href="/images/uml_final.png" target="_blank"><img src='images/uml_final.png' title='UML' width='' alt='UML Diafram' class='center-block' /></a>.
 
 ---
 
