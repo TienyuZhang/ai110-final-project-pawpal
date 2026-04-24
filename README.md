@@ -59,7 +59,7 @@ pawpal-starter/
 
 ## UML diagram
 
-<a href="/assets/uml_final.png" target="_blank"><img src='images/uml_final.png' title='UML' width='' alt='UML Diafram' class='center-block' /></a>.
+<a href="/assets/uml_final.png" target="_blank"><img src='assets/uml_final.png' title='UML' width='' alt='UML Diafram' class='center-block' /></a>.
 
 ---
 
@@ -91,11 +91,11 @@ python main.py
 ```
 
 ### 📸 Demo
-<a href="/assets/app_screenshot_1.png" target="_blank"><img src='images/app_screenshot_1.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>.
+<a href="/assets/app_screenshot_1.png" target="_blank"><img src='assets/app_screenshot_1.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>.
 
-<a href="/assets/app_screenshot_2.png" target="_blank"><img src='images/app_screenshot_2.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>.
+<a href="/assets/app_screenshot_2.png" target="_blank"><img src='assets/app_screenshot_2.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>.
 
-<a href="/assets/app_screenshot_3.png" target="_blank"><img src='images/app_screenshot_3.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>.
+<a href="/assets/app_screenshot_3.png" target="_blank"><img src='assets/app_screenshot_3.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>.
 
 ---
 
