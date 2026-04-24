@@ -59,7 +59,7 @@ pawpal-starter/
 
 ## UML diagram
 
-<a href="/images/uml_final.png" target="_blank"><img src='images/uml_final.png' title='UML' width='' alt='UML Diafram' class='center-block' /></a>.
+<a href="/assets/uml_final.png" target="_blank"><img src='images/uml_final.png' title='UML' width='' alt='UML Diafram' class='center-block' /></a>.
 
 ---
 
