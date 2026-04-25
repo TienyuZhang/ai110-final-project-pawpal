@@ -196,6 +196,26 @@ class Scheduler:
         """Ask the Owner for all pending tasks across its pets."""
         return self.owner.all_pending_tasks()
 
+    def _pending_tasks_with_pet(self) -> list[tuple["Pet", Task]]:
+        """Return (pet, task) pairs for all pending tasks, preserving pet context."""
+        return [(pet, task) for pet in self.owner.pets for task in pet.pending_tasks()]
+
+    def _deduplicate_shared(self, pairs: list[tuple["Pet", Task]]) -> list[Task]:
+        """Collapse tasks with identical titles across same-species pets into one instance.
+
+        Lets the scheduler count the time budget once when the owner can do the
+        activity with all same-species pets simultaneously (e.g., one walk for two dogs).
+        The first encountered task object is kept as the representative.
+        """
+        seen: set[tuple[str, str]] = set()
+        result = []
+        for pet, task in pairs:
+            key = (task.title.strip().lower(), pet.species)
+            if key not in seen:
+                seen.add(key)
+                result.append(task)
+        return result
+
     def mark_task_complete(self, pet: "Pet", task: Task) -> Task | None:
         """Mark a task complete and auto-schedule the next occurrence for recurring tasks."""
         task.mark_complete()
@@ -270,16 +290,23 @@ class Scheduler:
         """Composite score = priority value × urgency multiplier."""
         return task.priority.value * self._urgency_multiplier(task)
 
-    def generate_weighted_plan(self) -> Plan:
+    def generate_weighted_plan(self, shared_species: bool = False) -> Plan:
         """Schedule by composite score (priority × urgency) instead of raw priority.
 
         A LOW-priority task due today (score=3.0) will be scheduled ahead of a
         MEDIUM-priority task with no due date (score=2.0), reflecting real-world
         pet-care urgency rather than a fixed label hierarchy.
+        When shared_species=True, tasks with the same title across same-species pets
+        are counted once in the time budget.
         """
         budget = self.owner.available_minutes_per_day
+        pool = (
+            self._deduplicate_shared(self._pending_tasks_with_pet())
+            if shared_species
+            else self.get_all_tasks()
+        )
         candidates = sorted(
-            self.get_all_tasks(),
+            pool,
             key=lambda t: self.task_score(t),
             reverse=True,
         )
@@ -297,11 +324,20 @@ class Scheduler:
 
         return Plan(scheduled, skipped)
 
-    def generate_plan(self) -> Plan:
-        """Greedily schedule pending tasks by priority until the time budget is exhausted."""
+    def generate_plan(self, shared_species: bool = False) -> Plan:
+        """Greedily schedule pending tasks by priority until the time budget is exhausted.
+
+        When shared_species=True, tasks with the same title across same-species pets
+        are counted once in the time budget.
+        """
         budget = self.owner.available_minutes_per_day
+        pool = (
+            self._deduplicate_shared(self._pending_tasks_with_pet())
+            if shared_species
+            else self.get_all_tasks()
+        )
         candidates = sorted(
-            self.get_all_tasks(),
+            pool,
             key=lambda t: t.priority.value,
             reverse=True,
         )

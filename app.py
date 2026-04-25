@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from datetime import date
 from pawpal_system import Owner, Pet, Task, Priority, Scheduler
 
@@ -61,49 +62,87 @@ def urgency_label(task: Task) -> str:
 # ── Section 1: Owner & Pet Setup ──────────────────────────────────────────────
 st.subheader("1. Owner & Pet Setup")
 
-owner_name = st.text_input("Owner name", value="Jordan")
-available_time = st.number_input("Available time today (minutes)", min_value=10, max_value=480, value=60)
-pet_name = st.text_input("Pet name", value="Mochi")
-species = st.selectbox("Species", ["dog", "cat", "other"])
+existing_owner = st.session_state.owner
+default_name = existing_owner.name if existing_owner else "Jordan"
+default_time = existing_owner.available_minutes_per_day if existing_owner else 60
 
-if st.button("Save owner & pet"):
-    pet = Pet(name=pet_name, species=species)
-    owner = Owner(name=owner_name, available_minutes_per_day=int(available_time), pets=[pet])
-    st.session_state.owner = owner
-    owner.save_to_json()
-    st.success(f"Saved! {owner_name} is caring for {pet_name} ({species}) with {available_time} min today.")
+owner_name = st.text_input("Owner name", value=default_name)
+available_time = st.number_input("Available time today (minutes)", min_value=10, max_value=480, value=default_time)
+
+st.markdown("**Add a pet:**")
+col_pet1, col_pet2 = st.columns(2)
+with col_pet1:
+    pet_name = st.text_input("Pet name", value="Mochi")
+with col_pet2:
+    species = st.selectbox("Species", ["dog", "cat", "other"])
+
+if st.button("Save settings & add pet"):
+    if st.session_state.owner is None or st.session_state.owner.name != owner_name:
+        # First save or owner name changed — create fresh owner with this pet
+        pet = Pet(name=pet_name, species=species)
+        st.session_state.owner = Owner(
+            name=owner_name,
+            available_minutes_per_day=int(available_time),
+            pets=[pet],
+        )
+        st.success(f"Created owner **{owner_name}** with pet **{pet_name}** ({species}), {available_time} min/day.")
+    else:
+        # Existing owner — update time budget and add pet if new
+        owner = st.session_state.owner
+        owner.available_minutes_per_day = int(available_time)
+        existing_pet_names = [p.name for p in owner.pets]
+        if pet_name in existing_pet_names:
+            st.info(f"**{pet_name}** is already in your pet list. Settings updated.")
+        else:
+            owner.add_pet(Pet(name=pet_name, species=species))
+            st.success(f"Added **{pet_name}** ({species}) to {owner_name}'s pets. {available_time} min/day.")
+    st.session_state.owner.save_to_json()
+
+# Show current pets
+if st.session_state.owner and st.session_state.owner.pets:
+    pet_list = ", ".join(
+        f"**{p.name}** ({p.species})" for p in st.session_state.owner.pets
+    )
+    st.markdown(f"Current pets: {pet_list}")
 
 st.divider()
 
 # ── Section 2: Add Tasks ───────────────────────────────────────────────────────
 st.subheader("2. Add Tasks")
 
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 with col1:
-    task_title = st.text_input("Task title", value="Morning walk")
+    task_pet_names = [p.name for p in st.session_state.owner.pets] if st.session_state.owner else []
+    task_pet = st.selectbox("For pet", task_pet_names if task_pet_names else ["—"])
 with col2:
-    duration = st.number_input("Duration (min)", min_value=1, max_value=240, value=20)
+    task_title = st.text_input("Task title", value="Morning walk")
 with col3:
-    priority_str = st.selectbox("Priority", ["low", "medium", "high"], index=2)
+    duration = st.number_input("Duration (min)", min_value=1, max_value=240, value=20)
 with col4:
-    task_time = st.text_input("Start time (HH:MM)", value="07:00")
+    priority_str = st.selectbox("Priority", ["low", "medium", "high"], index=2)
 with col5:
+    task_time = st.text_input("Start time (HH:MM)", value="07:00")
+with col6:
     due_date_input = st.date_input("Due date (optional)", value=None)
 
 if st.button("Add task"):
-    if st.session_state.owner is None:
+    if st.session_state.owner is None or not st.session_state.owner.pets:
         st.warning("Please save an owner & pet first.")
     else:
-        task = Task(
-            title=task_title,
-            duration_minutes=int(duration),
-            priority=PRIORITY_MAP[priority_str],
-            time=task_time,
-            due_date=due_date_input if due_date_input else None,
-        )
-        st.session_state.owner.pets[0].add_task(task)
-        st.session_state.owner.save_to_json()
-        st.success(f"Added: {task_icon(task_title)} **{task_title}** at {task_time} ({duration} min, {PRIORITY_EMOJI[priority_str.upper()]})")
+        target_pet = next((p for p in st.session_state.owner.pets if p.name == task_pet), None)
+        if target_pet is None:
+            st.warning("Selected pet not found. Please save a pet first.")
+        else:
+            task = Task(
+                title=task_title,
+                duration_minutes=int(duration),
+                priority=PRIORITY_MAP[priority_str],
+                time=task_time,
+                due_date=due_date_input if due_date_input else None,
+            )
+            target_pet.add_task(task)
+            st.session_state.owner.save_to_json()
+            st.success(f"Added: {task_icon(task_title)} **{task_title}** for **{task_pet}** at {task_time} ({duration} min, {PRIORITY_EMOJI[priority_str.upper()]})")
 
 # Display tasks sorted by priority then time
 owner = st.session_state.owner
@@ -118,26 +157,65 @@ if owner and owner.all_tasks():
     m2.metric("Pending", len(pending))
     m3.metric("Completed", len(all_tasks) - len(pending))
 
-    st.markdown("**Current tasks** (sorted by priority, then start time):")
-    st.dataframe(
+    # Keep a stable (pet, task) order that matches the editor rows
+    task_rows = [
+        (pet, t)
+        for pet in owner.pets
+        for t in scheduler.sort_by_priority_then_time(pet.tasks)
+    ]
+
+    st.markdown("**Current tasks** — edit cells directly, then click **Save task edits**:")
+    edited_df = st.data_editor(
         [
             {
-                "Pet":        pet.name,
-                "Start":      t.time,
-                "Task":       f"{task_icon(t.title)} {t.title}",
-                "Duration":   f"{t.duration_minutes} min",
-                "Priority":   PRIORITY_EMOJI[t.priority.name],
-                "Due":        urgency_label(t),
-                "Score":      f"{scheduler.task_score(t):.1f}",
-                "Done":       "✓" if t.completed else "",
+                "Pet":            pet.name,
+                "Task":           t.title,
+                "Start":          t.time,
+                "Duration (min)": t.duration_minutes,
+                "Priority":       t.priority.name.capitalize(),
+                "Due Date":       t.due_date,
+                "Score":          round(scheduler.task_score(t), 1),
+                "Done":           t.completed,
             }
-            for pet in owner.pets
-            for t in scheduler.sort_by_priority_then_time(pet.tasks)
+            for pet, t in task_rows
         ],
-        use_container_width=True,
+        column_config={
+            "Pet":            st.column_config.TextColumn(disabled=True),
+            "Task":           st.column_config.TextColumn("Task"),
+            "Start":          st.column_config.TextColumn("Start (HH:MM)"),
+            "Duration (min)": st.column_config.NumberColumn(min_value=1, max_value=240, step=1),
+            "Priority":       st.column_config.SelectboxColumn(
+                                  "Priority", options=["Low", "Medium", "High"]
+                              ),
+            "Due Date":       st.column_config.DateColumn("Due Date"),
+            "Score":          st.column_config.NumberColumn("Score", disabled=True, format="%.1f"),
+            "Done":           st.column_config.CheckboxColumn("Done"),
+        },
         hide_index=True,
+        use_container_width=True,
+        key="task_editor",
     )
     st.caption("💡 **Score** = priority value (1–3) × urgency multiplier (1.0–3.0). Higher score → scheduled first in weighted mode.")
+
+    if st.button("Save task edits"):
+        edited_rows = edited_df if isinstance(edited_df, list) else edited_df.to_dict("records")
+        for i, (pet, task) in enumerate(task_rows):
+            row = edited_rows[i]
+            task.title           = str(row["Task"]) if row["Task"] else task.title
+            task.time            = str(row["Start"]) if row["Start"] else task.time
+            task.duration_minutes = int(row["Duration (min)"]) if row["Duration (min)"] else task.duration_minutes
+            task.priority        = Priority[str(row["Priority"]).upper()] if row["Priority"] else task.priority
+            due = row.get("Due Date")
+            if due is None or pd.isna(due):
+                task.due_date = None
+            elif isinstance(due, date):
+                task.due_date = due
+            else:
+                task.due_date = pd.Timestamp(due).date()
+            task.completed = bool(row["Done"]) if row["Done"] is not None else task.completed
+        owner.save_to_json()
+        st.success("Tasks updated and saved!")
+        st.rerun()
 
     # Surface conflict warnings immediately after the task table
     conflicts = scheduler.detect_conflicts()
@@ -164,6 +242,23 @@ use_weighted = st.toggle(
 if use_weighted:
     st.info("**Weighted mode:** score = priority value × urgency multiplier. A 🟢 Low task due *today* (score 3.0) beats a 🟡 Medium task with no due date (score 2.0).")
 
+use_shared = st.toggle(
+    "Count shared tasks once for same-species pets",
+    value=False,
+    help="When ON, tasks with the same name across pets of the same species (e.g., two dogs both have 'Morning walk') are counted as one time slot — the owner does them together.",
+)
+if use_shared:
+    same_species_groups = {}
+    if st.session_state.owner:
+        for pet in st.session_state.owner.pets:
+            same_species_groups.setdefault(pet.species, []).append(pet.name)
+    shared_groups = [names for names in same_species_groups.values() if len(names) > 1]
+    if shared_groups:
+        group_str = ", ".join(" + ".join(names) for names in shared_groups)
+        st.info(f"**Shared mode:** same-named tasks for [{group_str}] will be counted once in the time budget.")
+    else:
+        st.warning("No same-species pet groups found — add more pets of the same species for this option to take effect.")
+
 if st.button("Generate schedule"):
     if st.session_state.owner is None:
         st.warning("Please save an owner & pet first.")
@@ -180,7 +275,11 @@ if st.button("Generate schedule"):
                 message = warning.replace("WARNING ", "")
                 st.warning(f"⚠️ {message}")
 
-        plan = scheduler.generate_weighted_plan() if use_weighted else scheduler.generate_plan()
+        plan = (
+            scheduler.generate_weighted_plan(shared_species=use_shared)
+            if use_weighted
+            else scheduler.generate_plan(shared_species=use_shared)
+        )
 
         # Summary metrics
         time_used = sum(t.duration_minutes for t in plan.scheduled_tasks)
