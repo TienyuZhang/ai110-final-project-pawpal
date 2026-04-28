@@ -1,0 +1,65 @@
+[
+  {
+    "id": "cat_play_001",
+    "species": "cat",
+    "category": "exercise",
+    "title": "Play and Exercise Needs for Cats",
+    "content": "Cats need 20 to 30 minutes of active interactive play per day, ideally split into two sessions of 10 to 15 minutes each. Unlike dogs, cats are sprinters, not endurance athletes—they prefer short bursts of intense activity mimicking hunting behavior. Interactive toys such as feather wands, laser pointers, and toy mice engage their predatory instincts most effectively. Kittens and young cats under 3 years need more play (30 to 45 minutes daily) to burn energy and prevent behavioral problems. Senior cats still benefit from gentle daily play to maintain mobility and cognitive function. Indoor cats especially need structured play to compensate for the lack of outdoor stimulation. Without sufficient play, cats may develop aggression, anxiety, or destructive scratching.",
+    "keywords": ["play", "exercise", "laser", "feather", "wand", "toy", "interactive", "active", "activity", "hunting", "kitten"],
+    "suggested_tasks": [
+      {"title": "Morning play session", "duration_minutes": 15, "priority": "HIGH", "frequency": "daily", "time": "08:00"},
+      {"title": "Evening play session", "duration_minutes": 15, "priority": "HIGH", "frequency": "daily", "time": "19:00"}
+    ]
+  },
+  {
+    "id": "cat_feeding_001",
+    "species": "cat",
+    "category": "feeding",
+    "title": "Feeding Schedule and Nutrition for Cats",
+    "content": "Adult cats should be fed twice daily at consistent times, though some owners use puzzle feeders or timed automatic feeders to mimic natural hunting behavior. Cats are obligate carnivores and require high-protein diets—look for animal protein listed as the first ingredient. Wet food provides hydration and is recommended for cats prone to urinary tract issues or kidney disease. Dry food alone may cause chronic dehydration since cats have a low thirst drive. Fresh water must always be available; many cats prefer running water from a fountain. Avoid free-feeding dry food as it contributes to obesity. Treats should make up no more than 10% of daily caloric intake. Kittens need specially formulated food with higher calories and calcium for bone development.",
+    "keywords": ["feed", "food", "meal", "treat", "water", "nutrition", "diet", "bowl", "portion", "wet food", "dry food", "kibble", "fountain"],
+    "suggested_tasks": [
+      {"title": "Morning feeding", "duration_minutes": 10, "priority": "HIGH", "frequency": "daily", "time": "07:30"},
+      {"title": "Evening feeding", "duration_minutes": 10, "priority": "HIGH", "frequency": "daily", "time": "18:30"},
+      {"title": "Refill water fountain", "duration_minutes": 5, "priority": "HIGH", "frequency": "daily", "time": "08:00"}
+    ]
+  },
+  {
+    "id": "cat_grooming_001",
+    "species": "cat",
+    "category": "grooming",
+    "title": "Grooming Routine for Cats",
+    "content": "While cats groom themselves, they still benefit from regular human-assisted grooming. Short-haired cats should be brushed once or twice weekly to remove loose fur and reduce hairballs. Long-haired cats such as Persians and Maine Coons require daily brushing to prevent painful matting. Regular brushing also reduces the amount of hair cats ingest during self-grooming, decreasing hairball frequency. Nails should be trimmed every 2 to 3 weeks to prevent overgrowth, splitting, and accidental injury. Ears should be checked weekly and gently cleaned monthly with a vet-approved solution. Dental disease is extremely common in cats—brushing teeth daily or several times per week significantly extends dental health. Bathing is rarely necessary for cats unless they are very dirty, have a skin condition, or are a hairless breed.",
+    "keywords": ["groom", "brush", "bath", "coat", "nail", "trim", "ear", "teeth", "dental", "fur", "hairball", "mat"],
+    "suggested_tasks": [
+      {"title": "Brush coat", "duration_minutes": 10, "priority": "MEDIUM", "frequency": "daily", "time": "09:00"},
+      {"title": "Brush teeth", "duration_minutes": 5, "priority": "MEDIUM", "frequency": "daily", "time": "20:00"},
+      {"title": "Trim nails", "duration_minutes": 10, "priority": "MEDIUM", "frequency": "weekly", "time": "10:00"}
+    ]
+  },
+  {
+    "id": "cat_litter_001",
+    "species": "cat",
+    "category": "hygiene",
+    "title": "Litter Box Care for Cats",
+    "content": "Cats are fastidiously clean animals and will avoid a dirty litter box, sometimes eliminating outside the box instead. Litter boxes should be scooped at least once daily—ideally twice—to remove waste promptly. The entire litter should be replaced and the box thoroughly washed with mild soap every 1 to 2 weeks. The general guideline is one litter box per cat plus one extra (e.g., two cats need three boxes). Boxes should be placed in quiet, accessible locations away from food and water. Covered boxes contain odor but can trap ammonia and may deter cats; uncovered boxes are often preferred by cats. Sudden changes in litter box habits (frequency, location, straining) may signal a urinary tract infection, kidney disease, or diabetes and warrant prompt veterinary attention.",
+    "keywords": ["litter", "box", "scoop", "clean", "waste", "hygiene", "toilet", "sand"],
+    "suggested_tasks": [
+      {"title": "Scoop litter box", "duration_minutes": 5, "priority": "HIGH", "frequency": "daily", "time": "08:30"},
+      {"title": "Deep clean litter box", "duration_minutes": 20, "priority": "MEDIUM", "frequency": "weekly", "time": "11:00"}
+    ]
+  },
+  {
+    "id": "cat_health_001",
+    "species": "cat",
+    "category": "health",
+    "title": "Preventive Health Care for Cats",
+    "content": "Cats should have a veterinary wellness exam annually, and twice yearly for cats over 10 years. Core vaccines include rabies and FVRCP (feline viral rhinotracheitis, calicivirus, panleukopenia). Indoor cats still need regular vaccinations and parasite prevention. Flea prevention is important even for indoor cats as fleas can enter on clothing or other pets. Cats on daily medications—such as hyperthyroid medication, insulin for diabetes, or steroid doses—require precise, consistent dosing schedules. Weight monitoring is critical since obesity leads to diabetes, arthritis, and liver disease in cats. Hairball remedies or high-fiber diets may be needed for cats that frequently vomit hairballs. Any change in drinking, urination, appetite, or behavior warrants a vet visit, as cats are skilled at hiding illness.",
+    "keywords": ["medication", "medicine", "pill", "supplement", "vet", "vaccine", "flea", "health", "appointment", "check", "insulin", "thyroid"],
+    "suggested_tasks": [
+      {"title": "Give daily medication", "duration_minutes": 5, "priority": "HIGH", "frequency": "daily", "time": "08:00"},
+      {"title": "Vet check-up", "duration_minutes": 60, "priority": "HIGH", "frequency": "as needed", "time": "10:00"},
+      {"title": "Monthly flea prevention", "duration_minutes": 5, "priority": "HIGH", "frequency": "weekly", "time": "09:00"}
+    ]
+  }
+]

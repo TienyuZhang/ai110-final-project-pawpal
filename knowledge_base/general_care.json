@@ -1,0 +1,37 @@
+[
+  {
+    "id": "general_dental_001",
+    "species": "all",
+    "category": "health",
+    "title": "Dental Health for Pets",
+    "content": "Dental disease is the most common preventable health condition in pets, affecting over 80% of dogs and 70% of cats by age 3. Bacteria in plaque harden into tartar within 24 to 48 hours, causing gingivitis, tooth loss, and infections that can spread to the heart, kidneys, and liver. Daily tooth brushing with pet-specific enzymatic toothpaste is the gold standard—never use human toothpaste, which contains xylitol or fluoride toxic to pets. Dental chews, water additives, and dental diets provide supplemental benefit but do not replace brushing. Annual professional dental cleanings under anesthesia are recommended for most adult pets. Signs of dental disease include bad breath, pawing at the mouth, dropping food, red or swollen gums, and reluctance to eat hard food.",
+    "keywords": ["dental", "teeth", "brush", "tooth", "gum", "mouth", "breath", "tartar", "plaque", "chew"],
+    "suggested_tasks": [
+      {"title": "Brush teeth", "duration_minutes": 5, "priority": "MEDIUM", "frequency": "daily", "time": "20:00"},
+      {"title": "Give dental chew", "duration_minutes": 5, "priority": "LOW", "frequency": "daily", "time": "13:00"}
+    ]
+  },
+  {
+    "id": "general_hydration_001",
+    "species": "all",
+    "category": "feeding",
+    "title": "Hydration and Water Intake for Pets",
+    "content": "Adequate hydration is essential for kidney function, digestion, temperature regulation, and joint lubrication in all pets. Dogs need roughly 30 ml of water per kilogram of body weight per day; cats need approximately 60 ml per kg, though cats on wet diets get significant moisture from food. Water bowls should be washed daily to prevent biofilm and bacterial growth. Pets often drink more from moving water—fountains significantly increase water intake in cats. Signs of dehydration include lethargy, dry gums, skin tenting, and sunken eyes. In hot weather or after vigorous exercise, dogs especially need access to extra fresh water. Always have water available before and after feeding and exercise. Monitor water intake changes as they can indicate diabetes, kidney disease, or other conditions.",
+    "keywords": ["water", "hydration", "drink", "bowl", "fountain", "refill", "thirst", "fluid"],
+    "suggested_tasks": [
+      {"title": "Refill water bowl", "duration_minutes": 5, "priority": "HIGH", "frequency": "daily", "time": "08:00"},
+      {"title": "Clean water bowl", "duration_minutes": 5, "priority": "MEDIUM", "frequency": "daily", "time": "18:00"}
+    ]
+  },
+  {
+    "id": "general_observation_001",
+    "species": "all",
+    "category": "health",
+    "title": "Daily Health Observation for Pets",
+    "content": "A brief daily check of your pet's appearance and behavior is one of the most valuable preventive care habits. Look for changes in appetite, energy level, coat condition, eye clarity, gum color, and bathroom habits. Gums should be pink and moist—pale, white, blue, or yellow gums indicate a medical emergency. Eyes should be clear and bright; discharge or cloudiness warrants attention. Coat should be shiny and free of mats, bald patches, excessive dandruff, or parasites. Changes in stool consistency, frequency, or color can indicate digestive issues, parasites, or dietary problems. Limping, reluctance to rise, or sensitivity to touch may signal pain or injury. Catching changes early dramatically improves treatment outcomes and reduces costs. Keep a simple weekly log of weight, appetite, and behavior to spot gradual trends.",
+    "keywords": ["check", "observe", "health", "monitor", "weight", "gum", "eye", "coat", "appetite", "behavior", "inspect", "wellness"],
+    "suggested_tasks": [
+      {"title": "Daily health check", "duration_minutes": 5, "priority": "MEDIUM", "frequency": "daily", "time": "09:00"}
+    ]
+  }
+]

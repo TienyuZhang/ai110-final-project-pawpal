@@ -1,0 +1,66 @@
+[
+  {
+    "id": "dog_exercise_001",
+    "species": "dog",
+    "category": "exercise",
+    "title": "Daily Exercise Requirements for Dogs",
+    "content": "Most dogs need 30 to 120 minutes of physical activity per day depending on breed, age, and health. High-energy breeds such as Border Collies, Labradors, and Huskies need 60 to 120 minutes of vigorous exercise daily. Medium-energy breeds such as Bulldogs and Basset Hounds need 30 to 60 minutes. Low-energy or senior dogs may need only 20 to 30 minutes of gentle walking. Exercise should be split into at least two sessions per day, ideally morning and evening, to prevent energy buildup and destructive behavior. Beyond physical fitness, walks provide essential mental stimulation through sniffing and environmental exploration. Puppies should be limited to 5 minutes of exercise per month of age (e.g., 20 minutes at 4 months) to protect developing joints.",
+    "keywords": ["walk", "exercise", "run", "play", "energy", "activity", "outdoor", "jog", "fetch", "leash"],
+    "suggested_tasks": [
+      {"title": "Morning walk", "duration_minutes": 30, "priority": "HIGH", "frequency": "daily", "time": "07:00"},
+      {"title": "Evening walk", "duration_minutes": 30, "priority": "HIGH", "frequency": "daily", "time": "18:00"}
+    ]
+  },
+  {
+    "id": "dog_feeding_001",
+    "species": "dog",
+    "category": "feeding",
+    "title": "Feeding Schedule and Nutrition for Dogs",
+    "content": "Adult dogs should be fed twice daily, approximately 8 to 12 hours apart, to maintain stable blood sugar and reduce the risk of bloat in larger breeds. Puppies under 6 months require three to four meals per day. Portion sizes depend on the dog's weight, age, activity level, and the caloric density of the food—always follow the feeding guidelines on the dog food label and adjust based on body condition. Fresh water must be available at all times and bowls should be cleaned daily to prevent bacterial buildup. Avoid feeding dogs table scraps, especially foods toxic to dogs such as onions, grapes, raisins, chocolate, and xylitol. Measuring food with a cup prevents overfeeding and obesity, which affects over 50% of pet dogs.",
+    "keywords": ["feed", "food", "meal", "treat", "water", "nutrition", "diet", "bowl", "portion", "kibble"],
+    "suggested_tasks": [
+      {"title": "Morning feeding", "duration_minutes": 10, "priority": "HIGH", "frequency": "daily", "time": "07:30"},
+      {"title": "Evening feeding", "duration_minutes": 10, "priority": "HIGH", "frequency": "daily", "time": "18:30"},
+      {"title": "Refill water bowl", "duration_minutes": 5, "priority": "HIGH", "frequency": "daily", "time": "08:00"}
+    ]
+  },
+  {
+    "id": "dog_grooming_001",
+    "species": "dog",
+    "category": "grooming",
+    "title": "Grooming Routine for Dogs",
+    "content": "Regular grooming keeps a dog's coat healthy, reduces shedding, and allows early detection of skin issues, lumps, or parasites. Short-haired dogs should be brushed weekly; medium-haired dogs two to three times per week; long-haired dogs daily to prevent matting. All dogs should be bathed every 4 to 6 weeks, or more frequently if they get dirty or have a skin condition. Nails should be trimmed every 3 to 4 weeks—overgrown nails cause discomfort and can affect gait. Ears should be checked weekly and cleaned monthly or as needed to prevent infections, especially in floppy-eared breeds. Teeth should be brushed ideally daily, or at minimum 3 times per week, using dog-specific toothpaste to prevent dental disease.",
+    "keywords": ["groom", "brush", "bath", "wash", "coat", "nail", "trim", "ear", "teeth", "dental", "shed", "fur"],
+    "suggested_tasks": [
+      {"title": "Brush coat", "duration_minutes": 10, "priority": "MEDIUM", "frequency": "daily", "time": "09:00"},
+      {"title": "Brush teeth", "duration_minutes": 5, "priority": "MEDIUM", "frequency": "daily", "time": "20:00"},
+      {"title": "Trim nails", "duration_minutes": 15, "priority": "MEDIUM", "frequency": "weekly", "time": "10:00"},
+      {"title": "Bath time", "duration_minutes": 30, "priority": "LOW", "frequency": "weekly", "time": "11:00"}
+    ]
+  },
+  {
+    "id": "dog_health_001",
+    "species": "dog",
+    "category": "health",
+    "title": "Preventive Health Care for Dogs",
+    "content": "Dogs should receive a full veterinary wellness exam at least once a year, and twice yearly for dogs over 7 years. Core vaccines (rabies, distemper, parvovirus, adenovirus) follow schedules set by the vet. Flea, tick, and heartworm prevention should be administered monthly year-round in most climates. Dogs on daily medication such as thyroid pills, joint supplements, or seizure medication must receive their doses at consistent times each day—missed doses can cause serious health complications. Monthly weight checks help catch gradual weight gain or loss early. Dental disease affects 80% of dogs by age 3 and contributes to heart and kidney disease, making dental hygiene a health priority, not just cosmetic.",
+    "keywords": ["medication", "medicine", "pill", "supplement", "vet", "doctor", "vaccine", "flea", "tick", "heartworm", "health", "appointment", "check"],
+    "suggested_tasks": [
+      {"title": "Give daily medication", "duration_minutes": 5, "priority": "HIGH", "frequency": "daily", "time": "08:00"},
+      {"title": "Monthly flea and tick prevention", "duration_minutes": 10, "priority": "HIGH", "frequency": "weekly", "time": "09:00"},
+      {"title": "Vet check-up", "duration_minutes": 60, "priority": "HIGH", "frequency": "as needed", "time": "10:00"}
+    ]
+  },
+  {
+    "id": "dog_enrichment_001",
+    "species": "dog",
+    "category": "enrichment",
+    "title": "Mental Stimulation and Enrichment for Dogs",
+    "content": "Mental stimulation is as important as physical exercise for dogs. Bored dogs often develop destructive behaviors like chewing, barking, or digging. Training sessions of 5 to 15 minutes, one to two times daily, reinforce good behavior, strengthen the human-dog bond, and provide mental challenge. Puzzle feeders, sniff mats, and interactive toys slow down eating and engage natural problem-solving instincts. Socialization with other dogs and people, ideally daily, maintains emotional wellbeing. Rotating toys every few days maintains novelty. Off-leash play in a safe area allows dogs to run, explore, and express natural behaviors. Dogs left alone for long periods benefit from enrichment activities like frozen Kongs or chew toys.",
+    "keywords": ["play", "train", "training", "session", "enrichment", "fetch", "puzzle", "toy", "socialize", "stimulation", "kong", "game"],
+    "suggested_tasks": [
+      {"title": "Training session", "duration_minutes": 15, "priority": "MEDIUM", "frequency": "daily", "time": "16:00"},
+      {"title": "Play and enrichment", "duration_minutes": 20, "priority": "MEDIUM", "frequency": "daily", "time": "15:00"}
+    ]
+  }
+]

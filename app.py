@@ -1,7 +1,11 @@
+import os
 import streamlit as st
 import pandas as pd
 from datetime import date
+from dotenv import load_dotenv
 from pawpal_system import Owner, Pet, Task, Priority, Scheduler
+
+load_dotenv()  # load ANTHROPIC_API_KEY from .env if present
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -16,6 +20,12 @@ if "owner" not in st.session_state:
         st.session_state.owner = Owner.load_from_json()
     except (FileNotFoundError, KeyError, ValueError):
         st.session_state.owner = None
+
+# AI Advisor results persist across reruns so "Add task" buttons keep working
+if "ai_result" not in st.session_state:
+    st.session_state.ai_result = None   # dict returned by advisor.recommend_tasks()
+if "advisor_instance" not in st.session_state:
+    st.session_state.advisor_instance = None   # cached PetCareAdvisor (avoids repeated models.list())
 
 PRIORITY_MAP = {"low": Priority.LOW, "medium": Priority.MEDIUM, "high": Priority.HIGH}
 PRIORITY_EMOJI = {
@@ -316,3 +326,169 @@ if st.button("Generate schedule"):
             st.markdown("**Skipped (not enough time):**")
             for t in plan.skipped_tasks:
                 st.warning(f"⏭️ {task_icon(t.title)} **{t.title}** {PRIORITY_EMOJI[t.priority.name]} — needs {t.duration_minutes} min")
+
+st.divider()
+
+# ── Section 4: AI Pet Care Advisor ────────────────────────────────────────────
+st.subheader("4. AI Pet Care Advisor")
+st.markdown(
+    "Uses **RAG + Agentic AI** to identify gaps in your pet's care schedule "
+    "and suggest grounded, personalised tasks. The AI retrieves relevant care "
+    "guidelines first, then reasons in multiple steps before recommending."
+)
+
+# ── API key handling ──────────────────────────────────────────────────────────
+def _looks_valid(key: str) -> bool:
+    """Basic sanity check: Google AI Studio keys start with 'AIza' and are long."""
+    return key.startswith("AIza") and len(key) > 20
+
+env_key = os.environ.get("GOOGLE_API_KEY", "")
+env_key_valid = _looks_valid(env_key)
+
+if env_key_valid:
+    api_key = env_key
+    st.success("API key loaded from environment.", icon="🔑")
+else:
+    if env_key and not env_key_valid:
+        st.warning(
+            "The `GOOGLE_API_KEY` in your environment doesn't look valid "
+            "(should start with `AIza`). Please enter a valid key below."
+        )
+    else:
+        st.info("No `GOOGLE_API_KEY` found in environment. Enter it below to enable the AI Advisor.")
+    api_key = st.text_input(
+        "Google Gemini API key",
+        type="password",
+        placeholder="AIza...",
+        key="api_key_input",
+        help="Get a free key at aistudio.google.com. Used only for this session.",
+    )
+
+ai_ready = _looks_valid(api_key)
+
+# ── Pet selector for the advisor ──────────────────────────────────────────────
+advisor_owner = st.session_state.owner
+advisor_pet_names = [p.name for p in advisor_owner.pets] if advisor_owner else []
+
+if not advisor_owner or not advisor_pet_names:
+    st.info("Add at least one pet in Section 1 to use the AI Advisor.")
+else:
+    selected_advisor_pet = st.selectbox(
+        "Analyse care schedule for",
+        advisor_pet_names,
+        key="advisor_pet_select",
+    )
+
+    if st.button("Get AI recommendations", disabled=not ai_ready):
+        target_pet = next(p for p in advisor_owner.pets if p.name == selected_advisor_pet)
+
+        with st.spinner("Analysing care gaps & generating suggestions (may take up to 60s if rate-limited)..."):
+            try:
+                from advisor import PetCareAdvisor
+                if st.session_state.advisor_instance is None:
+                    st.session_state.advisor_instance = PetCareAdvisor(api_key=api_key)
+                advisor = st.session_state.advisor_instance
+
+                with st.spinner("Retrieving care knowledge & generating suggestions..."):
+                    result = advisor.recommend_tasks(
+                        pet_name=target_pet.name,
+                        species=target_pet.species,
+                        current_tasks=target_pet.tasks,
+                        budget_minutes=advisor_owner.available_minutes_per_day,
+                    )
+
+                st.session_state.ai_result = {**result, "pet_name": target_pet.name}
+                if result.get("llm_used"):
+                    st.success(
+                        f"AI generated {len(result['suggestions'])} suggestion(s) for **{target_pet.name}**."
+                    )
+                else:
+                    st.info(
+                        f"Found {len(result['suggestions'])} suggestion(s) for **{target_pet.name}** "
+                        f"from the care knowledge base (AI was busy — suggestions are based on best practices)."
+                    )
+            except ValueError as exc:
+                st.error(f"Configuration error: {exc}")
+            except Exception as exc:
+                msg = str(exc)
+                if "limit: 0" in msg or ("429" in msg and "free_tier" in msg):
+                    st.error(
+                        "Your API key's free tier quota is 0. This happens when the key "
+                        "belongs to a Google Cloud project that has billing enabled. "
+                        "Fix: go to **aistudio.google.com/apikey** → 'Create API key' → "
+                        "choose **'Create API key in new project'**, then update your `.env`."
+                    )
+                elif "429" in msg:
+                    st.warning("Rate limit hit — please wait ~30 seconds and try again.")
+                elif "401" in msg or "403" in msg or "api_key" in msg.lower() or "invalid" in msg.lower():
+                    st.error(
+                        "Invalid API key. Double-check your key at aistudio.google.com "
+                        "and make sure there are no extra spaces or line breaks."
+                    )
+                else:
+                    st.error(f"AI Advisor error: {exc}")
+
+    # ── Display results ───────────────────────────────────────────────────────
+    result = st.session_state.ai_result
+    if result and result.get("pet_name") == selected_advisor_pet:
+
+        # Metadata ribbon
+        meta_cols = st.columns(3)
+        meta_cols[0].metric("Reasoning steps", result["steps_taken"])
+        meta_cols[1].metric("Care gaps found", len(result["gap_categories"]))
+        meta_cols[2].metric("Suggestions", len(result["suggestions"]))
+
+        if result.get("message"):
+            st.success(result["message"])
+
+        # Care gaps identified
+        if result["gap_categories"]:
+            st.markdown(
+                "**Care gaps identified:** "
+                + " · ".join(f"`{c}`" for c in result["gap_categories"])
+            )
+
+        # Retrieved knowledge chunks (RAG transparency)
+        if result.get("retrieved_chunks"):
+            with st.expander("Retrieved knowledge base chunks (RAG source)", expanded=False):
+                for chunk in result["retrieved_chunks"]:
+                    st.markdown(f"**{chunk.get('title', 'Chunk')}**")
+                    st.caption(chunk.get("content", "")[:300] + "…")
+                    st.divider()
+
+        # Suggestions with individual add buttons
+        if result["suggestions"]:
+            st.markdown("**AI-suggested tasks** — click Add to include in your schedule:")
+            target_pet_obj = next(
+                (p for p in advisor_owner.pets if p.name == selected_advisor_pet), None
+            )
+            for i, sug in enumerate(result["suggestions"]):
+                with st.container(border=True):
+                    c1, c2 = st.columns([4, 1])
+                    with c1:
+                        st.markdown(
+                            f"{task_icon(sug['title'])} **{sug['title']}** · "
+                            f"{sug['duration_minutes']} min · "
+                            f"{PRIORITY_EMOJI[sug['priority']]} · "
+                            f"{sug['frequency']} · {sug['time']}"
+                        )
+                        st.caption(f"Reason: {sug['reason']}")
+                    with c2:
+                        if st.button("Add", key=f"add_sug_{i}"):
+                            if target_pet_obj:
+                                new_task = Task(
+                                    title=sug["title"],
+                                    duration_minutes=sug["duration_minutes"],
+                                    priority=Priority[sug["priority"]],
+                                    frequency=sug["frequency"],
+                                    time=sug["time"],
+                                )
+                                target_pet_obj.add_task(new_task)
+                                advisor_owner.save_to_json()
+                                st.success(f"Added **{sug['title']}** to {selected_advisor_pet}'s schedule.")
+                                st.rerun()
+        elif not result.get("message"):
+            st.info("No suggestions generated. Try again or check the AI log for details.")
+
+    if not ai_ready:
+        st.caption("Get a free key at aistudio.google.com and set `GOOGLE_API_KEY` in your `.env` file.")
