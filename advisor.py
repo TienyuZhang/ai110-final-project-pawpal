@@ -65,23 +65,47 @@ TIME_RE        = re.compile(r"^\d{2}:\d{2}$")
 
 def _parse_json_response(raw: str, context: str) -> list[dict] | None:
     """
-    Safely extract a JSON array from Claude's response.
-    Claude sometimes wraps JSON in markdown code fences — strip them first.
+    Safely extract a JSON array from the model's response.
+    Strips optional markdown code fences, then handles three shapes:
+      - list of dicts  → returned as-is
+      - {"tasks": [...]} wrapper → unwrapped
+      - plain single dict → wrapped in a list
     Returns None on parse failure (caller decides how to handle).
     """
-    # Strip optional markdown code fences
     cleaned = re.sub(r"```(?:json)?\s*", "", raw).strip().rstrip("```").strip()
     try:
         data = json.loads(cleaned)
         if isinstance(data, list):
             return data
-        if isinstance(data, dict) and "tasks" in data:
-            return data["tasks"]
+        if isinstance(data, dict):
+            return data.get("tasks") or [data]   # unwrap or wrap
         logger.warning("[%s] Unexpected JSON shape: %s", context, type(data))
         return None
     except json.JSONDecodeError as exc:
         logger.error("[%s] JSON parse error: %s | raw: %s", context, exc, raw[:200])
         return None
+
+
+def _quality_score(task: dict) -> float:
+    """
+    Return a 0.0–1.0 quality score for a validated task suggestion.
+    Three signals: reason length (0.4), title length (0.3), duration range (0.3).
+    """
+    score = 0.0
+    reason_len = len(task.get("reason", ""))
+    if reason_len >= 50:
+        score += 0.4
+    elif reason_len >= 20:
+        score += 0.2
+    title_len = len(task.get("title", ""))
+    if title_len >= 10:
+        score += 0.3
+    elif title_len >= 5:
+        score += 0.15
+    duration = task.get("duration_minutes", 0)
+    if 5 <= duration <= 120:
+        score += 0.3
+    return round(min(score, 1.0), 2)
 
 
 def _validate_task(raw: dict) -> dict | None:
@@ -296,12 +320,8 @@ class PetCareAdvisor:
         )
 
         try:
-            raw    = self._call_llm(prompt, step_label="Step2-Suggest")
-            parsed = _parse_json_response(raw, "suggest_tasks")
-            if isinstance(parsed, dict):
-                raw_tasks = [parsed]
-            else:
-                raw_tasks = parsed or []
+            raw       = self._call_llm(prompt, step_label="Step2-Suggest")
+            raw_tasks = _parse_json_response(raw, "suggest_tasks") or []
             validated = [v for t in raw_tasks if (v := _validate_task(t)) is not None]
             if validated:
                 logger.info("[Step2] %d/%d LLM suggestions validated", len(validated), len(raw_tasks))
@@ -384,9 +404,17 @@ class PetCareAdvisor:
         # ── Step 3: trim to budget in code (0 tokens) ────────────────────────
         suggestions = self._trim_to_budget(suggestions, budget_remaining)
 
+        # Attach a quality score (0.0–1.0) to each suggestion
+        for s in suggestions:
+            s["quality_score"] = _quality_score(s)
+        avg_confidence = (
+            round(sum(s["quality_score"] for s in suggestions) / len(suggestions), 2)
+            if suggestions else 0.0
+        )
+
         logger.info(
-            "=== Done: %d suggestions, %d steps, llm=%s, pet=%s ===",
-            len(suggestions), steps, llm_used, pet_name,
+            "=== Done: %d suggestions, avg_confidence=%.2f, llm=%s, pet=%s ===",
+            len(suggestions), avg_confidence, llm_used, pet_name,
         )
         return {
             "suggestions":      suggestions,
@@ -394,6 +422,7 @@ class PetCareAdvisor:
             "gap_categories":   gap_categories,
             "steps_taken":      steps,
             "llm_used":         llm_used,
+            "avg_confidence":   avg_confidence,
             "timestamp":        timestamp,
             "message":          None,
         }
